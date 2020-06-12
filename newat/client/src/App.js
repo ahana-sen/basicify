@@ -11,22 +11,84 @@ class App extends Component {
 
     this.state = {
                   isUserAuthorized,
-                  musicHistory: [],
+                  topSongs: [],
+                  basicScore: 0,
   };
+  }
+
+  componentDidMount(){
+
+    const { isUserAuthorized } = this.state;
+
+    if (isUserAuthorized) {
+
+
+
+      fetch('http://localhost:5000/history')
+        .then(res => res.json())
+        .then(data => {
+
+          var i;
+          var sum = 0;
+          for(i=0;i<Object.keys(data).length; i++){
+              sum += data[i].popularity;
+                  }
+
+          this.setState({
+              basicScore: sum/Object.keys(data).length,
+              topSongs: data,
+                  })
+          console.log(data)
+        }
+        )
+          //this.setState({
+            //topSongs: data,
+          //});
+
+        .catch(error => console.log(error));
+
+    }
+
   }
 
 
 
+
   render() {
-    const { isUserAuthorized, musicHistory } = this.state;
+    const { isUserAuthorized, topSongs, basicScore } = this.state;
     const connectSpotify = isUserAuthorized ? (
-  ''
+  <p>Spotify connected! Your basic score is: </p>
 ) : (
   <a href="http://localhost:5000/login">connect to your spotify to see</a>
 );
-    const BasicScore = () => (
-      <p>Spotify connected! Your basic score</p>
-    );
+
+const ShowBasicScore = () => (
+  <p>{basicScore}</p>
+)
+const TableItem = (item, index) => (
+  <tr key={item.name}>
+    <td>{index+1}</td>
+    <td>{item.name}</td>
+    <td>{item.popularity}</td>
+  </tr>
+);
+
+const RecentlyPlayed = () => (
+  <div className="recently-played">
+    <h2>most listened to arists</h2>
+    <table className="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Artist</th>
+          <th>Pop</th>
+        </tr>
+      </thead>
+      <tbody>{topSongs.map((e, index) => TableItem(e, index))}</tbody>
+    </table>
+  </div>
+);
+
 
 
 
@@ -34,9 +96,10 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <h1 className="App-title">everyone's worst fear is being basic </h1>
-          <h2 className="App-subtitle">are you basic? updated </h2>
+          <h2 className="App-subtitle">are you basic? </h2>
           {connectSpotify}
-          {musicHistory.length !== 0 ? <BasicScore /> : null}
+          {topSongs.length !== 0 ? <ShowBasicScore /> : null}
+          {topSongs.length !== 0 ? <RecentlyPlayed /> : null}
         </header>
 
 
